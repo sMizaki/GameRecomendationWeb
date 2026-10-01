@@ -88,67 +88,67 @@ def seed_demo_data() -> None:
 
     # 2. ข้อมูลเกม 10 เกม พร้อมลิงก์รูปภาพปก
     games = [
-        {
-            "game_id": "G101",
-            "title": "Elden Ring",
-            "year": 2022,
-            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg",
-        },
-        {
-            "game_id": "G102",
-            "title": "Cyberpunk 2077",
-            "year": 2020,
-            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co2mvt.jpg",
-        },
-        {
-            "game_id": "G103",
-            "title": "Minecraft",
-            "year": 2011,
-            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co8436.jpg",
-        },
-        {
-            "game_id": "G104",
-            "title": "Valorant",
-            "year": 2020,
-            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co2b5x.jpg",
-        },
-        {
-            "game_id": "G105",
-            "title": "Genshin Impact",
-            "year": 2020,
-            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co2a05.jpg",
-        },
-        {
-            "game_id": "G106",
-            "title": "Honkai: Star Rail",
-            "year": 2023,
-            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co6b79.jpg",
-        },
-        {
-            "game_id": "G107",
-            "title": "The Witcher 3",
-            "year": 2015,
-            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1wyy.jpg",
-        },
-        {
-            "game_id": "G108",
-            "title": "GTA V",
-            "year": 2013,
-            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1x77.jpg",
-        },
-        {
-            "game_id": "G109",
-            "title": "Apex Legends",
-            "year": 2019,
-            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co2k1e.jpg",
-        },
-        {
-            "game_id": "G110",
-            "title": "Project Zomboid",
-            "year": 2013,
-            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1ybs.jpg",
-        },
-    ]
+    {
+        "game_id": "G101",
+        "title": "Elden Ring",
+        "year": 2022,
+        "image_url": "https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/library_600x900.jpg",
+    },
+    {
+        "game_id": "G102",
+        "title": "Cyberpunk 2077",
+        "year": 2020,
+        "image_url": "https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/library_600x900.jpg",
+    },
+    {
+        "game_id": "G103",
+        "title": "Minecraft",
+        "year": 2011,
+        "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co8436.jpg",
+    },
+    {
+        "game_id": "G104",
+        "title": "Valorant",
+        "year": 2020,
+        "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co2b5x.jpg",
+    },
+    {
+        "game_id": "G105",
+        "title": "Genshin Impact",
+        "year": 2020,
+        "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co2a05.jpg",
+    },
+    {
+        "game_id": "G106",
+        "title": "Honkai: Star Rail",
+        "year": 2023,
+        "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co6b79.jpg",
+    },
+    {
+        "game_id": "G107",
+        "title": "The Witcher 3",
+        "year": 2015,
+        "image_url": "https://cdn.cloudflare.steamstatic.com/steam/apps/292030/library_600x900.jpg",
+    },
+    {
+        "game_id": "G108",
+        "title": "GTA V",
+        "year": 2013,
+        "image_url": "https://cdn.cloudflare.steamstatic.com/steam/apps/271590/library_600x900.jpg",
+    },
+    {
+        "game_id": "G109",
+        "title": "Apex Legends",
+        "year": 2019,
+        "image_url": "https://cdn.cloudflare.steamstatic.com/steam/apps/1172470/library_600x900.jpg",
+    },
+    {
+        "game_id": "G110",
+        "title": "Project Zomboid",
+        "year": 2013,
+        "image_url": "https://cdn.cloudflare.steamstatic.com/steam/apps/108600/library_600x900.jpg",
+    },
+]
 
     developers = [
         {"dev_id": "D01", "name": "FromSoftware"},
