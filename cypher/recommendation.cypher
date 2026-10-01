@@ -1,48 +1,49 @@
-// Explainable Hybrid Book Recommendation
-// Parameters: $student_id, $limit
-MATCH (u:Student {student_id:$student_id})
-MATCH (b:Book)
-WHERE NOT (u)-[:BORROWED]->(b)
+// Explainable Hybrid Game Recommendation
+// Parameters: \(username,\)limit
+MATCH (u:User {username: $username})
+MATCH (g:Game)
+WHERE NOT (u)-[:LIKES]->(g)
 
-// 1) Social signal: books borrowed by friends
-OPTIONAL MATCH (u)-[:FRIEND_OF]-(f:Student)-[:BORROWED]->(b)
-WITH u, b,
+// 1) Social signal: เกมที่เพื่อนเล่น/ชอบ
+OPTIONAL MATCH (u)-[:FRIEND_OF]-(f:User)-[:LIKES]->(g)
+WITH u, g,
      count(DISTINCT f) AS friend_count,
-     [x IN collect(DISTINCT f.name) WHERE x IS NOT NULL][0..3] AS friend_names
+     [x IN collect(DISTINCT f.username) WHERE x IS NOT NULL][0..3] AS friend_names
 
-// 2) Content signal: categories matching the user's interests
-OPTIONAL MATCH (u)-[:INTERESTED_IN]->(c:Category)<-[:IN_CATEGORY]-(b)
-WITH b, friend_count, friend_names,
-     count(DISTINCT c) AS interest_matches,
-     [x IN collect(DISTINCT c.name) WHERE x IS NOT NULL] AS matched_categories
+// 2) Content signal: หมวดแนวเกมตรงกับความสนใจของผู้ใช้
+OPTIONAL MATCH (u)-[:INTERESTED_IN]->(gen:Genre)<-[:IN_GENRE]-(g)
+WITH g, friend_count, friend_names,
+     count(DISTINCT gen) AS genre_matches,
+     [x IN collect(DISTINCT gen.name) WHERE x IS NOT NULL] AS matched_genres
 
-// 3) Popularity and rating signal
-OPTIONAL MATCH (:Student)-[br:BORROWED]->(b)
-WITH b, friend_count, friend_names, interest_matches, matched_categories,
-     count(br) AS popularity,
-     coalesce(avg(br.rating), 0.0) AS avg_rating
+// 3) Popularity and rating signal: ความนิยมและเรตติ้งรวมในระบบ
+OPTIONAL MATCH (:User)-[r:LIKES]->(g)
+WITH g, friend_count, friend_names, genre_matches, matched_genres,
+     count(r) AS popularity,
+     coalesce(avg(r.rating), 0.0) AS avg_rating
 
-// 4) Teaching-friendly heuristic score
-WITH b, friend_count, friend_names, interest_matches, matched_categories,
+// 4) Hybrid heuristic score calculation
+WITH g, friend_count, friend_names, genre_matches, matched_genres,
      popularity, avg_rating,
      (friend_count * 3.0) +
-     (interest_matches * 2.0) +
+     (genre_matches * 2.0) +
      (popularity * 0.20) +
      (avg_rating * 0.50) AS score
-WHERE friend_count > 0 OR interest_matches > 0 OR popularity > 0
+WHERE friend_count > 0 OR genre_matches > 0 OR popularity > 0
 
-OPTIONAL MATCH (a:Author)-[:WROTE]->(b)
-OPTIONAL MATCH (b)-[:IN_CATEGORY]->(allc:Category)
-RETURN b.book_id AS book_id,
-       b.title AS title,
-       collect(DISTINCT a.name) AS authors,
-       collect(DISTINCT allc.name) AS categories,
+OPTIONAL MATCH (d:Developer)-[:DEVELOPED]->(g)
+OPTIONAL MATCH (g)-[:IN_GENRE]->(allgen:Genre)
+RETURN g.game_name AS game_name,
+       g.year AS year,
+       g.image_url AS image_url,
+       collect(DISTINCT d.name) AS developers,
+       collect(DISTINCT allgen.name) AS genres,
        friend_count,
        friend_names,
-       interest_matches,
-       matched_categories,
+       genre_matches,
+       matched_genres,
        popularity,
        round(avg_rating * 100) / 100.0 AS avg_rating,
        round(score * 100) / 100.0 AS score
-ORDER BY score DESC, b.title
+ORDER BY score DESC, g.game_name
 LIMIT $limit;

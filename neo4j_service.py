@@ -1,8 +1,18 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 import streamlit as st
 from neo4j import GraphDatabase, RoutingControl
+
+# ชี้ตำแหน่งโฟลเดอร์ cypher/
+CYPHER_DIR = Path(__file__).resolve().parent / "cypher"
+
+
+def load_cypher(filename: str) -> str:
+    """อ่านคำสั่ง Cypher จากไฟล์ในโฟลเดอร์ cypher/"""
+    file_path = CYPHER_DIR / filename
+    return file_path.read_text(encoding="utf-8")
 
 
 def _config() -> tuple[str, str, str, str]:
@@ -40,12 +50,9 @@ def ping() -> bool:
 
 
 def create_schema() -> None:
-    statements = [
-        "CREATE CONSTRAINT user_username_unique IF NOT EXISTS FOR (u:User) REQUIRE u.username IS UNIQUE",
-        "CREATE CONSTRAINT game_name_unique IF NOT EXISTS FOR (g:Game) REQUIRE g.game_name IS UNIQUE",
-        "CREATE CONSTRAINT developer_id_unique IF NOT EXISTS FOR (d:Developer) REQUIRE d.developer_id IS UNIQUE",
-        "CREATE CONSTRAINT genre_name_unique IF NOT EXISTS FOR (gen:Genre) REQUIRE gen.name IS UNIQUE",
-    ]
+    """อ่าน schema.cypher แล้วรันคำสั่ง Constraint แต่ละบรรทัด"""
+    cypher_text = load_cypher("schema.cypher")
+    statements = [stmt.strip() for stmt in cypher_text.split(";") if stmt.strip()]
     for stmt in statements:
         query(stmt, write=True)
 
@@ -63,56 +70,16 @@ def seed_demo_data() -> None:
     ]
 
     games = [
-        {
-            "game_name": "Elden Ring",
-            "year": 2022,
-            "image_url": "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80",
-        },
-        {
-            "game_name": "Cyberpunk 2077",
-            "year": 2020,
-            "image_url": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80",
-        },
-        {
-            "game_name": "Minecraft",
-            "year": 2011,
-            "image_url": "https://images.unsplash.com/photo-1627856013091-fed6e4e30025?w=600&auto=format&fit=crop&q=80",
-        },
-        {
-            "game_name": "Valorant",
-            "year": 2020,
-            "image_url": "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&auto=format&fit=crop&q=80",
-        },
-        {
-            "game_name": "Genshin Impact",
-            "year": 2020,
-            "image_url": "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?w=600&auto=format&fit=crop&q=80",
-        },
-        {
-            "game_name": "Honkai: Star Rail",
-            "year": 2023,
-            "image_url": "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=600&auto=format&fit=crop&q=80",
-        },
-        {
-            "game_name": "The Witcher 3",
-            "year": 2015,
-            "image_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80",
-        },
-        {
-            "game_name": "GTA V",
-            "year": 2013,
-            "image_url": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80",
-        },
-        {
-            "game_name": "Apex Legends",
-            "year": 2019,
-            "image_url": "https://images.unsplash.com/photo-1563089145-599997674d42?w=600&auto=format&fit=crop&q=80",
-        },
-        {
-            "game_name": "Project Zomboid",
-            "year": 2013,
-            "image_url": "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600&auto=format&fit=crop&q=80",
-        },
+        {"game_name": "Elden Ring", "year": 2022, "image_url": "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80"},
+        {"game_name": "Cyberpunk 2077", "year": 2020, "image_url": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80"},
+        {"game_name": "Minecraft", "year": 2011, "image_url": "https://images.unsplash.com/photo-1627856013091-fed6e4e30025?w=600&auto=format&fit=crop&q=80"},
+        {"game_name": "Valorant", "year": 2020, "image_url": "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&auto=format&fit=crop&q=80"},
+        {"game_name": "Genshin Impact", "year": 2020, "image_url": "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?w=600&auto=format&fit=crop&q=80"},
+        {"game_name": "Honkai: Star Rail", "year": 2023, "image_url": "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=600&auto=format&fit=crop&q=80"},
+        {"game_name": "The Witcher 3", "year": 2015, "image_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80"},
+        {"game_name": "GTA V", "year": 2013, "image_url": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80"},
+        {"game_name": "Apex Legends", "year": 2019, "image_url": "https://images.unsplash.com/photo-1563089145-599997674d42?w=600&auto=format&fit=crop&q=80"},
+        {"game_name": "Project Zomboid", "year": 2013, "image_url": "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600&auto=format&fit=crop&q=80"},
     ]
 
     developers = [
@@ -261,44 +228,10 @@ def get_profile(username: str) -> dict[str, Any] | None:
 
 
 def recommend_games(username: str, limit: int = 6) -> list[dict[str, Any]]:
-    """Hybrid scoring: Friends (3.0) + Genre (2.0) + Global Popularity (0.2) + Avg Rating (0.5)."""
+    """โหลดและรันคำสั่งจาก recommendation.cypher"""
+    cypher_text = load_cypher("recommendation.cypher")
     return query(
-        """
-        MATCH (u:User {username: $username})
-        MATCH (g:Game)
-        WHERE NOT (u)-[:LIKES]->(g)
-
-        OPTIONAL MATCH (u)-[:FRIEND_OF]-(f:User)-[:LIKES]->(g)
-        WITH u, g, count(DISTINCT f) AS friend_count,
-             [x IN collect(DISTINCT f.username) WHERE x IS NOT NULL][0..3] AS friend_names
-
-        OPTIONAL MATCH (u)-[:INTERESTED_IN]->(gen:Genre)<-[:IN_GENRE]-(g)
-        WITH g, friend_count, friend_names,
-             count(DISTINCT gen) AS genre_matches,
-             [x IN collect(DISTINCT gen.name) WHERE x IS NOT NULL] AS matched_genres
-
-        OPTIONAL MATCH (:User)-[r:LIKES]->(g)
-        WITH g, friend_count, friend_names, genre_matches, matched_genres,
-             count(r) AS popularity,
-             avg(r.rating) AS avg_rating
-
-        WITH g, friend_count, friend_names, genre_matches, matched_genres,
-             popularity, coalesce(avg_rating, 0.0) AS avg_rating,
-             (friend_count * 3.0) + (genre_matches * 2.0) +
-             (popularity * 0.20) + (coalesce(avg_rating, 0.0) * 0.50) AS score
-        WHERE friend_count > 0 OR genre_matches > 0 OR popularity > 0
-
-        OPTIONAL MATCH (d:Developer)-[:DEVELOPED]->(g)
-        OPTIONAL MATCH (g)-[:IN_GENRE]->(allgen:Genre)
-        RETURN g.game_name AS game_name, g.year AS year, g.image_url AS image_url,
-               collect(DISTINCT d.name) AS developers,
-               collect(DISTINCT allgen.name) AS genres,
-               friend_count, friend_names, genre_matches, matched_genres,
-               popularity, round(avg_rating * 100) / 100.0 AS avg_rating,
-               round(score * 100) / 100.0 AS score
-        ORDER BY score DESC, g.game_name
-        LIMIT $limit
-        """,
+        cypher_text,
         {"username": username, "limit": int(limit)},
     )
 
