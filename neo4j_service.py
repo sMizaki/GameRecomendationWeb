@@ -237,20 +237,23 @@ def recommend_games(username: str, limit: int = 6) -> list[dict[str, Any]]:
 
 
 def search_games(keyword: str = "", genre: str | None = None) -> list[dict[str, Any]]:
-    return query(
-        """
-        MATCH (g:Game)
-        OPTIONAL MATCH (d:Developer)-[:DEVELOPED]->(g)
-        OPTIONAL MATCH (g)-[:IN_GENRE]->(gen:Genre)
-        WITH g, collect(DISTINCT d.name) AS developers, collect(DISTINCT gen.name) AS genres
-        WHERE (\(keyword = '' OR toLower(g.game_name) CONTAINS toLower(\)keyword))
-          AND (\(genre = '' OR\)genre IN genres)
-        RETURN g.game_name AS game_name, g.year AS year, g.image_url AS image_url,
-               developers, genres
-        ORDER BY g.game_name
-        """,
-        {"keyword": keyword.strip(), "genre": genre or ""},
-    )
+    cypher = """
+    MATCH (g:Game)
+    OPTIONAL MATCH (d:Developer)-[:DEVELOPED]->(g)
+    OPTIONAL MATCH (g)-[:IN_GENRE]->(gen:Genre)
+    WITH g, collect(DISTINCT d.name) AS developers, collect(DISTINCT gen.name) AS genres
+    WHERE (\(keyword = '' OR toLower(coalesce(g.game_name, '')) CONTAINS toLower(\)keyword))
+      AND (\(genre = '' OR\)genre IN genres)
+    RETURN g.game_name AS game_name,
+           g.year AS year,
+           g.image_url AS image_url,
+           developers,
+           genres
+    ORDER BY game_name ASC
+    """
+    clean_keyword = (keyword or "").strip()
+    clean_genre = (genre or "").strip()
+    return query(cypher, {"keyword": clean_keyword, "genre": clean_genre})
 
 
 def list_genres() -> list[str]:
