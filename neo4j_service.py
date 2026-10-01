@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Any
-
 import streamlit as st
 from neo4j import GraphDatabase, RoutingControl
 
@@ -12,13 +11,12 @@ def _config() -> tuple[str, str, str, str]:
         cfg["uri"],
         cfg["username"],
         cfg["password"],
-        cfg.get("database", "b9b3be4a"),
+        cfg.get("database", "neo4j"),
     )
 
 
 @st.cache_resource(show_spinner=False)
 def get_driver():
-    """Create one thread-safe Neo4j Driver for the Streamlit process."""
     uri, username, password, _ = _config()
     driver = GraphDatabase.driver(uri, auth=(username, password))
     driver.verify_connectivity()
@@ -26,7 +24,6 @@ def get_driver():
 
 
 def query(cypher: str, parameters: dict[str, Any] | None = None, *, write: bool = False) -> list[dict[str, Any]]:
-    """Execute parameterized Cypher and return rows as dictionaries."""
     _, _, _, database = _config()
     records, _, _ = get_driver().execute_query(
         cypher,
@@ -44,292 +41,316 @@ def ping() -> bool:
 
 def create_schema() -> None:
     statements = [
-        "CREATE CONSTRAINT student_id_unique IF NOT EXISTS FOR (s:Student) REQUIRE s.student_id IS UNIQUE",
-        "CREATE CONSTRAINT book_id_unique IF NOT EXISTS FOR (b:Book) REQUIRE b.book_id IS UNIQUE",
-        "CREATE CONSTRAINT author_id_unique IF NOT EXISTS FOR (a:Author) REQUIRE a.author_id IS UNIQUE",
-        "CREATE CONSTRAINT category_name_unique IF NOT EXISTS FOR (c:Category) REQUIRE c.name IS UNIQUE",
+        "CREATE CONSTRAINT user_username_unique IF NOT EXISTS FOR (u:User) REQUIRE u.username IS UNIQUE",
+        "CREATE CONSTRAINT game_name_unique IF NOT EXISTS FOR (g:Game) REQUIRE g.game_name IS UNIQUE",
+        "CREATE CONSTRAINT developer_id_unique IF NOT EXISTS FOR (d:Developer) REQUIRE d.developer_id IS UNIQUE",
+        "CREATE CONSTRAINT genre_name_unique IF NOT EXISTS FOR (gen:Genre) REQUIRE gen.name IS UNIQUE",
     ]
     for stmt in statements:
         query(stmt, write=True)
 
 
 def seed_demo_data() -> None:
-    """Idempotent sample dataset: safe to run more than once."""
     create_schema()
 
-    students = [
-        {"student_id": "S001", "name": "Anan", "major": "Computer Science", "year": 2},
-        {"student_id": "S002", "name": "Mali", "major": "Computer Science", "year": 2},
-        {"student_id": "S003", "name": "Krit", "major": "Information Technology", "year": 3},
-        {"student_id": "S004", "name": "Nida", "major": "Data Science", "year": 2},
-        {"student_id": "S005", "name": "Ploy", "major": "Business Computer", "year": 3},
-        {"student_id": "S006", "name": "Ton", "major": "Computer Science", "year": 1},
+    users = [
+        {"username": "Alice", "role": "Hardcore Gamer", "level": 45},
+        {"username": "Bob", "role": "FPS Enthusiast", "level": 32},
+        {"username": "Charlie", "role": "Gacha & RPG Fan", "level": 50},
+        {"username": "David", "role": "Survival Specialist", "level": 28},
+        {"username": "Emma", "role": "Co-op & Sandbox Lover", "level": 19},
+        {"username": "Frank", "role": "Competitive Gamer", "level": 38},
     ]
-    books = [
-        {"book_id": "B101", "title": "Python Programming", "year": 2025},
-        {"book_id": "B102", "title": "Artificial Intelligence Basics", "year": 2026},
-        {"book_id": "B103", "title": "Data Science for Students", "year": 2025},
-        {"book_id": "B104", "title": "Introduction to Database", "year": 2024},
-        {"book_id": "B105", "title": "Graph Databases with Neo4j", "year": 2026},
-        {"book_id": "B106", "title": "Machine Learning Foundations", "year": 2025},
-        {"book_id": "B107", "title": "Web Application Development", "year": 2024},
-        {"book_id": "B108", "title": "Algorithms and Problem Solving", "year": 2023},
-    ]
-    authors = [
-        {"author_id": "A01", "name": "Somchai Tech"},
-        {"author_id": "A02", "name": "Narin Data"},
-        {"author_id": "A03", "name": "Kanya AI"},
-        {"author_id": "A04", "name": "Preecha DB"},
-    ]
-    categories = ["Programming", "AI", "Data Science", "Database", "Web Development", "Algorithms"]
 
-    query(
-        """
-        UNWIND $rows AS row
-        MERGE (s:Student {student_id: row.student_id})
-        SET s.name = row.name, s.major = row.major, s.year = row.year
-        """,
-        {"rows": students},
-        write=True,
-    )
-    query(
-        """
-        UNWIND $rows AS row
-        MERGE (b:Book {book_id: row.book_id})
-        SET b.title = row.title, b.year = row.year
-        """,
-        {"rows": books},
-        write=True,
-    )
-    query(
-        """
-        UNWIND $rows AS row
-        MERGE (a:Author {author_id: row.author_id})
-        SET a.name = row.name
-        """,
-        {"rows": authors},
-        write=True,
-    )
-    query(
-        "UNWIND $rows AS name MERGE (:Category {name:name})",
-        {"rows": categories},
-        write=True,
-    )
+    games = [
+        {
+            "game_name": "Elden Ring",
+            "year": 2022,
+            "image_url": "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80",
+        },
+        {
+            "game_name": "Cyberpunk 2077",
+            "year": 2020,
+            "image_url": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80",
+        },
+        {
+            "game_name": "Minecraft",
+            "year": 2011,
+            "image_url": "https://images.unsplash.com/photo-1627856013091-fed6e4e30025?w=600&auto=format&fit=crop&q=80",
+        },
+        {
+            "game_name": "Valorant",
+            "year": 2020,
+            "image_url": "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&auto=format&fit=crop&q=80",
+        },
+        {
+            "game_name": "Genshin Impact",
+            "year": 2020,
+            "image_url": "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?w=600&auto=format&fit=crop&q=80",
+        },
+        {
+            "game_name": "Honkai: Star Rail",
+            "year": 2023,
+            "image_url": "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=600&auto=format&fit=crop&q=80",
+        },
+        {
+            "game_name": "The Witcher 3",
+            "year": 2015,
+            "image_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80",
+        },
+        {
+            "game_name": "GTA V",
+            "year": 2013,
+            "image_url": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80",
+        },
+        {
+            "game_name": "Apex Legends",
+            "year": 2019,
+            "image_url": "https://images.unsplash.com/photo-1563089145-599997674d42?w=600&auto=format&fit=crop&q=80",
+        },
+        {
+            "game_name": "Project Zomboid",
+            "year": 2013,
+            "image_url": "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600&auto=format&fit=crop&q=80",
+        },
+    ]
+
+    developers = [
+        {"developer_id": "D01", "name": "FromSoftware"},
+        {"developer_id": "D02", "name": "CD Projekt Red"},
+        {"developer_id": "D03", "name": "Mojang Studios"},
+        {"developer_id": "D04", "name": "Riot Games"},
+        {"developer_id": "D05", "name": "HoYoverse"},
+    ]
+
+    genres = ["Action RPG", "Open World", "Survival", "FPS", "Sandbox", "Turn-Based RPG"]
+
+    query("UNWIND $rows AS r MERGE (u:User {username: r.username}) SET u.role = r.role, u.level = r.level", {"rows": users}, write=True)
+    query("UNWIND $rows AS r MERGE (g:Game {game_name: r.game_name}) SET g.year = r.year, g.image_url = r.image_url", {"rows": games}, write=True)
+    query("UNWIND $rows AS r MERGE (d:Developer {developer_id: r.developer_id}) SET d.name = r.name", {"rows": developers}, write=True)
+    query("UNWIND $rows AS name MERGE (:Genre {name: name})", {"rows": genres}, write=True)
 
     friendships = [
-        ["S001", "S002"], ["S001", "S003"], ["S001", "S004"],
-        ["S002", "S005"], ["S003", "S004"], ["S004", "S006"],
+        ["Alice", "Bob"], ["Alice", "Charlie"], ["Alice", "David"],
+        ["Bob", "Charlie"], ["Bob", "Emma"], ["Charlie", "David"], ["Charlie", "Emma"],
     ]
     query(
         """
         UNWIND $rows AS row
-        MATCH (a:Student {student_id: row[0]}), (b:Student {student_id: row[1]})
+        MATCH (a:User {username: row[0]}), (b:User {username: row[1]})
         MERGE (a)-[:FRIEND_OF]->(b)
         """,
         {"rows": friendships},
         write=True,
     )
 
-    borrows = [
-        {"s": "S001", "b": "B101", "date": "2026-08-01", "rating": 4.0},
-        {"s": "S001", "b": "B108", "date": "2026-08-14", "rating": 4.0},
-        {"s": "S002", "b": "B103", "date": "2026-08-05", "rating": 5.0},
-        {"s": "S002", "b": "B102", "date": "2026-08-18", "rating": 4.0},
-        {"s": "S003", "b": "B103", "date": "2026-08-07", "rating": 4.0},
-        {"s": "S003", "b": "B104", "date": "2026-08-20", "rating": 5.0},
-        {"s": "S004", "b": "B105", "date": "2026-08-09", "rating": 5.0},
-        {"s": "S004", "b": "B103", "date": "2026-08-24", "rating": 5.0},
-        {"s": "S005", "b": "B107", "date": "2026-08-11", "rating": 4.0},
-        {"s": "S006", "b": "B106", "date": "2026-08-12", "rating": 4.0},
+    likes = [
+        {"u": "Alice", "g": "Elden Ring", "rating": 5.0, "hours": 120},
+        {"u": "Alice", "g": "The Witcher 3", "rating": 4.5, "hours": 95},
+        {"u": "Alice", "g": "Cyberpunk 2077", "rating": 4.0, "hours": 80},
+        {"u": "Bob", "g": "Valorant", "rating": 4.5, "hours": 300},
+        {"u": "Bob", "g": "Apex Legends", "rating": 4.0, "hours": 150},
+        {"u": "Bob", "g": "GTA V", "rating": 4.0, "hours": 110},
+        {"u": "Charlie", "g": "Genshin Impact", "rating": 5.0, "hours": 400},
+        {"u": "Charlie", "g": "Honkai: Star Rail", "rating": 5.0, "hours": 210},
+        {"u": "Charlie", "g": "Minecraft", "rating": 4.0, "hours": 180},
+        {"u": "David", "g": "Elden Ring", "rating": 5.0, "hours": 140},
+        {"u": "David", "g": "Project Zomboid", "rating": 4.5, "hours": 90},
+        {"u": "Emma", "g": "Minecraft", "rating": 5.0, "hours": 260},
+        {"u": "Emma", "g": "Project Zomboid", "rating": 4.0, "hours": 75},
+        {"u": "Emma", "g": "Genshin Impact", "rating": 4.0, "hours": 60},
     ]
     query(
         """
         UNWIND $rows AS row
-        MATCH (s:Student {student_id: row.s}), (b:Book {book_id: row.b})
-        MERGE (s)-[r:BORROWED]->(b)
-        SET r.borrow_date = date(row.date), r.rating = row.rating
+        MATCH (u:User {username: row.u}), (g:Game {game_name: row.g})
+        MERGE (u)-[r:LIKES]->(g)
+        SET r.rating = row.rating, r.hours_played = row.hours
         """,
-        {"rows": borrows},
+        {"rows": likes},
         write=True,
     )
 
     interests = [
-        ["S001", "Programming"], ["S001", "Database"],
-        ["S002", "AI"], ["S002", "Data Science"],
-        ["S003", "Database"], ["S003", "Data Science"],
-        ["S004", "AI"], ["S004", "Data Science"],
-        ["S005", "Web Development"], ["S006", "Programming"],
+        ["Alice", "Action RPG"], ["Alice", "Open World"],
+        ["Bob", "FPS"], ["Bob", "Open World"],
+        ["Charlie", "Turn-Based RPG"], ["Charlie", "Open World"],
+        ["David", "Survival"], ["David", "Action RPG"],
+        ["Emma", "Sandbox"], ["Emma", "Survival"],
     ]
     query(
         """
         UNWIND $rows AS row
-        MATCH (s:Student {student_id: row[0]}), (c:Category {name: row[1]})
-        MERGE (s)-[:INTERESTED_IN]->(c)
+        MATCH (u:User {username: row[0]}), (gen:Genre {name: row[1]})
+        MERGE (u)-[:INTERESTED_IN]->(gen)
         """,
         {"rows": interests},
         write=True,
     )
 
-    book_categories = [
-        ["B101", "Programming"], ["B102", "AI"], ["B103", "Data Science"],
-        ["B104", "Database"], ["B105", "Database"], ["B106", "AI"],
-        ["B106", "Data Science"], ["B107", "Web Development"],
-        ["B108", "Algorithms"], ["B108", "Programming"],
+    game_genres = [
+        ["Elden Ring", "Action RPG"], ["Elden Ring", "Open World"],
+        ["Cyberpunk 2077", "Action RPG"], ["Cyberpunk 2077", "Open World"],
+        ["Minecraft", "Sandbox"], ["Minecraft", "Survival"],
+        ["Valorant", "FPS"], ["Apex Legends", "FPS"],
+        ["Genshin Impact", "Action RPG"], ["Genshin Impact", "Open World"],
+        ["Honkai: Star Rail", "Turn-Based RPG"],
+        ["The Witcher 3", "Action RPG"], ["The Witcher 3", "Open World"],
+        ["GTA V", "Open World"], ["Project Zomboid", "Survival"],
     ]
     query(
         """
         UNWIND $rows AS row
-        MATCH (b:Book {book_id: row[0]}), (c:Category {name: row[1]})
-        MERGE (b)-[:IN_CATEGORY]->(c)
+        MATCH (g:Game {game_name: row[0]}), (gen:Genre {name: row[1]})
+        MERGE (g)-[:IN_GENRE]->(gen)
         """,
-        {"rows": book_categories},
+        {"rows": game_genres},
         write=True,
     )
 
-    wrote = [
-        ["A01", "B101"], ["A03", "B102"], ["A02", "B103"], ["A04", "B104"],
-        ["A04", "B105"], ["A03", "B106"], ["A01", "B107"], ["A01", "B108"],
+    dev_games = [
+        ["D01", "Elden Ring"], ["D02", "Cyberpunk 2077"], ["D02", "The Witcher 3"],
+        ["D03", "Minecraft"], ["D04", "Valorant"],
+        ["D05", "Genshin Impact"], ["D05", "Honkai: Star Rail"],
     ]
     query(
         """
         UNWIND $rows AS row
-        MATCH (a:Author {author_id: row[0]}), (b:Book {book_id: row[1]})
-        MERGE (a)-[:WROTE]->(b)
+        MATCH (d:Developer {developer_id: row[0]}), (g:Game {game_name: row[1]})
+        MERGE (d)-[:DEVELOPED]->(g)
         """,
-        {"rows": wrote},
+        {"rows": dev_games},
         write=True,
     )
 
 
-def get_students() -> list[dict[str, Any]]:
-    return query("MATCH (s:Student) RETURN s.student_id AS student_id, s.name AS name, s.major AS major, s.year AS year ORDER BY s.student_id")
+def get_users() -> list[dict[str, Any]]:
+    return query("MATCH (u:User) RETURN u.username AS username, u.role AS role, u.level AS level ORDER BY u.username")
 
 
 def get_dashboard_metrics() -> dict[str, int]:
     rows = query(
         """
-        MATCH (s:Student) WITH count(s) AS students
-        MATCH (b:Book) WITH students, count(b) AS books
-        MATCH ()-[r:BORROWED]->() WITH students, books, count(r) AS borrows
+        MATCH (u:User) WITH count(u) AS users
+        MATCH (g:Game) WITH users, count(g) AS games
+        MATCH ()-[r:LIKES]->() WITH users, games, count(r) AS likes
         MATCH ()-[f:FRIEND_OF]->()
-        RETURN students, books, borrows, count(f) AS friendships
+        RETURN users, games, likes, count(f) AS friendships
         """
     )
-    return rows[0] if rows else {"students": 0, "books": 0, "borrows": 0, "friendships": 0}
+    return rows[0] if rows else {"users": 0, "games": 0, "likes": 0, "friendships": 0}
 
 
-def get_profile(student_id: str) -> dict[str, Any] | None:
+def get_profile(username: str) -> dict[str, Any] | None:
     rows = query(
         """
-        MATCH (s:Student {student_id:$student_id})
-        OPTIONAL MATCH (s)-[:INTERESTED_IN]->(c:Category)
-        OPTIONAL MATCH (s)-[:BORROWED]->(b:Book)
-        RETURN s.student_id AS student_id, s.name AS name, s.major AS major, s.year AS year,
-               collect(DISTINCT c.name) AS interests,
-               collect(DISTINCT {book_id:b.book_id, title:b.title}) AS borrowed
+        MATCH (u:User {username: $username})
+        OPTIONAL MATCH (u)-[:INTERESTED_IN]->(gen:Genre)
+        OPTIONAL MATCH (u)-[r:LIKES]->(g:Game)
+        RETURN u.username AS username, u.role AS role, u.level AS level,
+               collect(DISTINCT gen.name) AS interests,
+               collect(DISTINCT {game_name: g.game_name, rating: r.rating, hours: r.hours_played}) AS liked_games
         """,
-        {"student_id": student_id},
+        {"username": username},
     )
     if not rows:
         return None
     row = rows[0]
-    row["borrowed"] = [x for x in row["borrowed"] if x.get("book_id")]
+    row["liked_games"] = [x for x in row["liked_games"] if x.get("game_name")]
     return row
 
 
-def recommend_books(student_id: str, limit: int = 8) -> list[dict[str, Any]]:
-    """Explainable hybrid score: social + interests + popularity + ratings."""
+def recommend_games(username: str, limit: int = 6) -> list[dict[str, Any]]:
+    """Hybrid scoring: Friends (3.0) + Genre (2.0) + Global Popularity (0.2) + Avg Rating (0.5)."""
     return query(
         """
-        MATCH (u:Student {student_id:$student_id})
-        MATCH (b:Book)
-        WHERE NOT (u)-[:BORROWED]->(b)
+        MATCH (u:User {username: $username})
+        MATCH (g:Game)
+        WHERE NOT (u)-[:LIKES]->(g)
 
-        OPTIONAL MATCH (u)-[:FRIEND_OF]-(f:Student)-[:BORROWED]->(b)
-        WITH u, b, count(DISTINCT f) AS friend_count,
-             [x IN collect(DISTINCT f.name) WHERE x IS NOT NULL][0..3] AS friend_names
+        OPTIONAL MATCH (u)-[:FRIEND_OF]-(f:User)-[:LIKES]->(g)
+        WITH u, g, count(DISTINCT f) AS friend_count,
+             [x IN collect(DISTINCT f.username) WHERE x IS NOT NULL][0..3] AS friend_names
 
-        OPTIONAL MATCH (u)-[:INTERESTED_IN]->(c:Category)<-[:IN_CATEGORY]-(b)
-        WITH b, friend_count, friend_names,
-             count(DISTINCT c) AS interest_matches,
-             [x IN collect(DISTINCT c.name) WHERE x IS NOT NULL] AS matched_categories
+        OPTIONAL MATCH (u)-[:INTERESTED_IN]->(gen:Genre)<-[:IN_GENRE]-(g)
+        WITH g, friend_count, friend_names,
+             count(DISTINCT gen) AS genre_matches,
+             [x IN collect(DISTINCT gen.name) WHERE x IS NOT NULL] AS matched_genres
 
-        OPTIONAL MATCH (:Student)-[br:BORROWED]->(b)
-        WITH b, friend_count, friend_names, interest_matches, matched_categories,
-             count(br) AS popularity,
-             avg(br.rating) AS avg_rating
+        OPTIONAL MATCH (:User)-[r:LIKES]->(g)
+        WITH g, friend_count, friend_names, genre_matches, matched_genres,
+             count(r) AS popularity,
+             avg(r.rating) AS avg_rating
 
-        WITH b, friend_count, friend_names, interest_matches, matched_categories,
+        WITH g, friend_count, friend_names, genre_matches, matched_genres,
              popularity, coalesce(avg_rating, 0.0) AS avg_rating,
-             (friend_count * 3.0) + (interest_matches * 2.0) +
+             (friend_count * 3.0) + (genre_matches * 2.0) +
              (popularity * 0.20) + (coalesce(avg_rating, 0.0) * 0.50) AS score
-        WHERE friend_count > 0 OR interest_matches > 0 OR popularity > 0
+        WHERE friend_count > 0 OR genre_matches > 0 OR popularity > 0
 
-        OPTIONAL MATCH (a:Author)-[:WROTE]->(b)
-        OPTIONAL MATCH (b)-[:IN_CATEGORY]->(allc:Category)
-        RETURN b.book_id AS book_id, b.title AS title, b.year AS year,
-               collect(DISTINCT a.name) AS authors,
-               collect(DISTINCT allc.name) AS categories,
-               friend_count, friend_names, interest_matches, matched_categories,
+        OPTIONAL MATCH (d:Developer)-[:DEVELOPED]->(g)
+        OPTIONAL MATCH (g)-[:IN_GENRE]->(allgen:Genre)
+        RETURN g.game_name AS game_name, g.year AS year, g.image_url AS image_url,
+               collect(DISTINCT d.name) AS developers,
+               collect(DISTINCT allgen.name) AS genres,
+               friend_count, friend_names, genre_matches, matched_genres,
                popularity, round(avg_rating * 100) / 100.0 AS avg_rating,
                round(score * 100) / 100.0 AS score
-        ORDER BY score DESC, b.title
+        ORDER BY score DESC, g.game_name
         LIMIT $limit
         """,
-        {"student_id": student_id, "limit": int(limit)},
+        {"username": username, "limit": int(limit)},
     )
 
 
-def search_books(keyword: str = "", category: str | None = None) -> list[dict[str, Any]]:
+def search_games(keyword: str = "", genre: str | None = None) -> list[dict[str, Any]]:
     return query(
         """
-        MATCH (b:Book)
-        OPTIONAL MATCH (a:Author)-[:WROTE]->(b)
-        OPTIONAL MATCH (b)-[:IN_CATEGORY]->(c:Category)
-        WITH b, collect(DISTINCT a.name) AS authors, collect(DISTINCT c.name) AS categories
-        WHERE ($keyword = '' OR toLower(b.title) CONTAINS toLower($keyword)
-               OR any(x IN authors WHERE toLower(x) CONTAINS toLower($keyword)))
-          AND ($category = '' OR $category IN categories)
-        RETURN b.book_id AS book_id, b.title AS title, b.year AS year,
-               authors, categories
-        ORDER BY b.title
+        MATCH (g:Game)
+        OPTIONAL MATCH (d:Developer)-[:DEVELOPED]->(g)
+        OPTIONAL MATCH (g)-[:IN_GENRE]->(gen:Genre)
+        WITH g, collect(DISTINCT d.name) AS developers, collect(DISTINCT gen.name) AS genres
+        WHERE (\(keyword = '' OR toLower(g.game_name) CONTAINS toLower(\)keyword))
+          AND (\(genre = '' OR\)genre IN genres)
+        RETURN g.game_name AS game_name, g.year AS year, g.image_url AS image_url,
+               developers, genres
+        ORDER BY g.game_name
         """,
-        {"keyword": keyword.strip(), "category": category or ""},
+        {"keyword": keyword.strip(), "genre": genre or ""},
     )
 
 
-def list_categories() -> list[str]:
-    return [row["name"] for row in query("MATCH (c:Category) RETURN c.name AS name ORDER BY c.name")]
+def list_genres() -> list[str]:
+    return [row["name"] for row in query("MATCH (g:Genre) RETURN g.name AS name ORDER BY g.name")]
 
 
-def record_borrow(student_id: str, book_id: str, borrow_date: str, rating: float | None = None) -> None:
+def record_like(username: str, game_name: str, rating: float, hours: int) -> None:
     query(
         """
-        MATCH (s:Student {student_id:$student_id}), (b:Book {book_id:$book_id})
-        MERGE (s)-[r:BORROWED]->(b)
-        SET r.borrow_date = date($borrow_date)
-        FOREACH (_ IN CASE WHEN $rating IS NULL THEN [] ELSE [1] END | SET r.rating = $rating)
+        MATCH (u:User {username: \(username}), (g:Game {game_name:\)game_name})
+        MERGE (u)-[r:LIKES]->(g)
+        SET r.rating = \(rating, r.hours_played =\)hours
         """,
-        {"student_id": student_id, "book_id": book_id, "borrow_date": borrow_date, "rating": rating},
+        {"username": username, "game_name": game_name, "rating": rating, "hours": hours},
         write=True,
     )
 
 
-def graph_neighborhood(student_id: str, limit: int = 40) -> list[dict[str, Any]]:
+def graph_neighborhood(username: str, limit: int = 40) -> list[dict[str, Any]]:
     return query(
         """
-        MATCH (u:Student {student_id:$student_id})
-        OPTIONAL MATCH p=(u)-[:FRIEND_OF|BORROWED|INTERESTED_IN*1..2]-(x)
+        MATCH (u:User {username: $username})
+        OPTIONAL MATCH p=(u)-[:FRIEND_OF|LIKES|INTERESTED_IN*1..2]-(x)
         WITH u, collect(p)[0..$limit] AS paths
         UNWIND paths AS p
         UNWIND relationships(p) AS r
         WITH DISTINCT startNode(r) AS s, r, endNode(r) AS t
         RETURN elementId(s) AS source_id, labels(s)[0] AS source_label,
-               coalesce(s.name, s.title, s.student_id, s.book_id) AS source_name,
+               coalesce(s.username, s.game_name, s.name) AS source_name,
                type(r) AS relationship,
                elementId(t) AS target_id, labels(t)[0] AS target_label,
-               coalesce(t.name, t.title, t.student_id, t.book_id) AS target_name
+               coalesce(t.username, t.game_name, t.name) AS target_name
         LIMIT $limit
         """,
-        {"student_id": student_id, "limit": int(limit)},
+        {"username": username, "limit": int(limit)},
     )
