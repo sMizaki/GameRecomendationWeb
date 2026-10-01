@@ -1,29 +1,11 @@
 from __future__ import annotations
-
-from pathlib import Path
 from typing import Any
 import streamlit as st
 from neo4j import GraphDatabase, RoutingControl
 
-# ชี้ตำแหน่งโฟลเดอร์ cypher/
-CYPHER_DIR = Path(__file__).resolve().parent / "cypher"
-
-
-def load_cypher(filename: str) -> str:
-    """อ่านคำสั่ง Cypher จากไฟล์ในโฟลเดอร์ cypher/"""
-    file_path = CYPHER_DIR / filename
-    return file_path.read_text(encoding="utf-8")
-
-
 def _config() -> tuple[str, str, str, str]:
     cfg = st.secrets["neo4j"]
-    return (
-        cfg["uri"],
-        cfg["username"],
-        cfg["password"],
-        cfg.get("database", "b9b3be4a"),
-    )
-
+    return (cfg["uri"], cfg["username"], cfg["password"], cfg.get("database", "b9b3be4a"))
 
 @st.cache_resource(show_spinner=False)
 def get_driver():
@@ -32,261 +14,140 @@ def get_driver():
     driver.verify_connectivity()
     return driver
 
-
 def query(cypher: str, parameters: dict[str, Any] | None = None, *, write: bool = False) -> list[dict[str, Any]]:
     _, _, _, database = _config()
     records, _, _ = get_driver().execute_query(
-        cypher,
-        parameters_=parameters or {},
-        database_=database,
+        cypher, parameters_=parameters or {}, database_=database,
         routing_=RoutingControl.WRITE if write else RoutingControl.READ,
     )
     return [record.data() for record in records]
-
 
 def ping() -> bool:
     rows = query("RETURN 1 AS ok")
     return bool(rows and rows[0]["ok"] == 1)
 
-
 def create_schema() -> None:
-    """อ่าน schema.cypher แล้วรันคำสั่ง Constraint แต่ละบรรทัด"""
-    cypher_text = load_cypher("schema.cypher")
-    statements = [stmt.strip() for stmt in cypher_text.split(";") if stmt.strip()]
+    statements = [
+        "CREATE CONSTRAINT user_id_unique IF NOT EXISTS FOR (u:User) REQUIRE u.user_id IS UNIQUE",
+        "CREATE CONSTRAINT game_id_unique IF NOT EXISTS FOR (g:Game) REQUIRE g.game_id IS UNIQUE",
+        "CREATE CONSTRAINT dev_id_unique IF NOT EXISTS FOR (d:Developer) REQUIRE d.developer_id IS UNIQUE",
+        "CREATE CONSTRAINT genre_unique IF NOT EXISTS FOR (g:Genre) REQUIRE g.name IS UNIQUE",
+    ]
     for stmt in statements:
         query(stmt, write=True)
-
 
 def seed_demo_data() -> None:
     create_schema()
 
     users = [
-        {"username": "Alice", "role": "Hardcore Gamer", "level": 45},
-        {"username": "Bob", "role": "FPS Enthusiast", "level": 32},
-        {"username": "Charlie", "role": "Gacha & RPG Fan", "level": 50},
-        {"username": "David", "role": "Survival Specialist", "level": 28},
-        {"username": "Emma", "role": "Co-op & Sandbox Lover", "level": 19},
-        {"username": "Frank", "role": "Competitive Gamer", "level": 38},
+        {"user_id": "U001", "name": "Anan", "platform": "PC", "year": 2026},
+        {"user_id": "U002", "name": "Mali", "platform": "PlayStation", "year": 2026},
+        {"user_id": "U003", "name": "Krit", "platform": "PC", "year": 2025},
+        {"user_id": "U004", "name": "Nida", "platform": "Nintendo Switch", "year": 2026},
     ]
-
+    # ใส่ลิงก์ภาพประกอบเกมจำลอง (อาจารย์จะเห็นภาพเกมตอนพรีเซนต์)
     games = [
-        {"game_name": "Elden Ring", "year": 2022, "image_url": "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80"},
-        {"game_name": "Cyberpunk 2077", "year": 2020, "image_url": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80"},
-        {"game_name": "Minecraft", "year": 2011, "image_url": "https://images.unsplash.com/photo-1627856013091-fed6e4e30025?w=600&auto=format&fit=crop&q=80"},
-        {"game_name": "Valorant", "year": 2020, "image_url": "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&auto=format&fit=crop&q=80"},
-        {"game_name": "Genshin Impact", "year": 2020, "image_url": "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?w=600&auto=format&fit=crop&q=80"},
-        {"game_name": "Honkai: Star Rail", "year": 2023, "image_url": "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=600&auto=format&fit=crop&q=80"},
-        {"game_name": "The Witcher 3", "year": 2015, "image_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80"},
-        {"game_name": "GTA V", "year": 2013, "image_url": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80"},
-        {"game_name": "Apex Legends", "year": 2019, "image_url": "https://images.unsplash.com/photo-1563089145-599997674d42?w=600&auto=format&fit=crop&q=80"},
-        {"game_name": "Project Zomboid", "year": 2013, "image_url": "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600&auto=format&fit=crop&q=80"},
+        {"game_id": "G101", "title": "Stardew Valley", "year": 2016, "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/xrpmydnu9rpxvxfjkiu7.jpg"},
+        {"game_id": "G102", "title": "Elden Ring", "year": 2022, "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg"},
+        {"game_id": "G103", "title": "Hollow Knight", "year": 2017, "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co8b3e.jpg"},
+        {"game_id": "G104", "title": "Overwatch 2", "year": 2022, "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co2k1d.jpg"},
     ]
-
     developers = [
-        {"developer_id": "D01", "name": "FromSoftware"},
-        {"developer_id": "D02", "name": "CD Projekt Red"},
-        {"developer_id": "D03", "name": "Mojang Studios"},
-        {"developer_id": "D04", "name": "Riot Games"},
-        {"developer_id": "D05", "name": "HoYoverse"},
+        {"dev_id": "D01", "name": "ConcernedApe"},
+        {"dev_id": "D02", "name": "FromSoftware"},
+        {"dev_id": "D03", "name": "Team Cherry"},
+        {"dev_id": "D04", "name": "Blizzard"},
     ]
+    genres = ["RPG", "Farming Sim", "Action", "Metroidvania", "FPS"]
 
-    genres = ["Action RPG", "Open World", "Survival", "FPS", "Sandbox", "Turn-Based RPG"]
+    query("UNWIND $rows AS row MERGE (u:User {user_id: row.user_id}) SET u.name = row.name, u.platform = row.platform", {"rows": users}, write=True)
+    query("UNWIND $rows AS row MERGE (g:Game {game_id: row.game_id}) SET g.title = row.title, g.year = row.year, g.image_url = row.image_url", {"rows": games}, write=True)
+    query("UNWIND $rows AS row MERGE (d:Developer {developer_id: row.dev_id}) SET d.name = row.name", {"rows": developers}, write=True)
+    query("UNWIND $rows AS name MERGE (:Genre {name:name})", {"rows": genres}, write=True)
 
-    query("UNWIND $rows AS r MERGE (u:User {username: r.username}) SET u.role = r.role, u.level = r.level", {"rows": users}, write=True)
-    query("UNWIND $rows AS r MERGE (g:Game {game_name: r.game_name}) SET g.year = r.year, g.image_url = r.image_url", {"rows": games}, write=True)
-    query("UNWIND $rows AS r MERGE (d:Developer {developer_id: r.developer_id}) SET d.name = r.name", {"rows": developers}, write=True)
-    query("UNWIND $rows AS name MERGE (:Genre {name: name})", {"rows": genres}, write=True)
-
-    friendships = [
-        ["Alice", "Bob"], ["Alice", "Charlie"], ["Alice", "David"],
-        ["Bob", "Charlie"], ["Bob", "Emma"], ["Charlie", "David"], ["Charlie", "Emma"],
+    query("UNWIND $rows AS r MATCH (a:User {user_id: r[0]}), (b:User {user_id: r[1]}) MERGE (a)-[:FRIEND_OF]->(b)", {"rows": [["U001", "U002"], ["U001", "U003"], ["U003", "U004"]]}, write=True)
+    
+    plays = [
+        {"u": "U001", "g": "G101", "date": "2026-08-01", "rating": 5.0},
+        {"u": "U001", "g": "G103", "date": "2026-08-14", "rating": 4.5},
+        {"u": "U002", "g": "G101", "date": "2026-08-05", "rating": 5.0},
+        {"u": "U003", "g": "G102", "date": "2026-08-07", "rating": 5.0},
     ]
-    query(
-        """
-        UNWIND $rows AS row
-        MATCH (a:User {username: row[0]}), (b:User {username: row[1]})
-        MERGE (a)-[:FRIEND_OF]->(b)
-        """,
-        {"rows": friendships},
-        write=True,
-    )
-
-    likes = [
-        {"u": "Alice", "g": "Elden Ring", "rating": 5.0, "hours": 120},
-        {"u": "Alice", "g": "The Witcher 3", "rating": 4.5, "hours": 95},
-        {"u": "Alice", "g": "Cyberpunk 2077", "rating": 4.0, "hours": 80},
-        {"u": "Bob", "g": "Valorant", "rating": 4.5, "hours": 300},
-        {"u": "Bob", "g": "Apex Legends", "rating": 4.0, "hours": 150},
-        {"u": "Bob", "g": "GTA V", "rating": 4.0, "hours": 110},
-        {"u": "Charlie", "g": "Genshin Impact", "rating": 5.0, "hours": 400},
-        {"u": "Charlie", "g": "Honkai: Star Rail", "rating": 5.0, "hours": 210},
-        {"u": "Charlie", "g": "Minecraft", "rating": 4.0, "hours": 180},
-        {"u": "David", "g": "Elden Ring", "rating": 5.0, "hours": 140},
-        {"u": "David", "g": "Project Zomboid", "rating": 4.5, "hours": 90},
-        {"u": "Emma", "g": "Minecraft", "rating": 5.0, "hours": 260},
-        {"u": "Emma", "g": "Project Zomboid", "rating": 4.0, "hours": 75},
-        {"u": "Emma", "g": "Genshin Impact", "rating": 4.0, "hours": 60},
-    ]
-    query(
-        """
-        UNWIND $rows AS row
-        MATCH (u:User {username: row.u}), (g:Game {game_name: row.g})
-        MERGE (u)-[r:LIKES]->(g)
-        SET r.rating = row.rating, r.hours_played = row.hours
-        """,
-        {"rows": likes},
-        write=True,
-    )
-
-    interests = [
-        ["Alice", "Action RPG"], ["Alice", "Open World"],
-        ["Bob", "FPS"], ["Bob", "Open World"],
-        ["Charlie", "Turn-Based RPG"], ["Charlie", "Open World"],
-        ["David", "Survival"], ["David", "Action RPG"],
-        ["Emma", "Sandbox"], ["Emma", "Survival"],
-    ]
-    query(
-        """
-        UNWIND $rows AS row
-        MATCH (u:User {username: row[0]}), (gen:Genre {name: row[1]})
-        MERGE (u)-[:INTERESTED_IN]->(gen)
-        """,
-        {"rows": interests},
-        write=True,
-    )
-
-    game_genres = [
-        ["Elden Ring", "Action RPG"], ["Elden Ring", "Open World"],
-        ["Cyberpunk 2077", "Action RPG"], ["Cyberpunk 2077", "Open World"],
-        ["Minecraft", "Sandbox"], ["Minecraft", "Survival"],
-        ["Valorant", "FPS"], ["Apex Legends", "FPS"],
-        ["Genshin Impact", "Action RPG"], ["Genshin Impact", "Open World"],
-        ["Honkai: Star Rail", "Turn-Based RPG"],
-        ["The Witcher 3", "Action RPG"], ["The Witcher 3", "Open World"],
-        ["GTA V", "Open World"], ["Project Zomboid", "Survival"],
-    ]
-    query(
-        """
-        UNWIND $rows AS row
-        MATCH (g:Game {game_name: row[0]}), (gen:Genre {name: row[1]})
-        MERGE (g)-[:IN_GENRE]->(gen)
-        """,
-        {"rows": game_genres},
-        write=True,
-    )
-
-    dev_games = [
-        ["D01", "Elden Ring"], ["D02", "Cyberpunk 2077"], ["D02", "The Witcher 3"],
-        ["D03", "Minecraft"], ["D04", "Valorant"],
-        ["D05", "Genshin Impact"], ["D05", "Honkai: Star Rail"],
-    ]
-    query(
-        """
-        UNWIND $rows AS row
-        MATCH (d:Developer {developer_id: row[0]}), (g:Game {game_name: row[1]})
-        MERGE (d)-[:DEVELOPED]->(g)
-        """,
-        {"rows": dev_games},
-        write=True,
-    )
-
+    query("UNWIND $rows AS row MATCH (u:User {user_id: row.u}), (g:Game {game_id: row.g}) MERGE (u)-[r:PLAYED]->(g) SET r.play_date = date(row.date), r.rating = row.rating", {"rows": plays}, write=True)
+    
+    query("UNWIND $rows AS r MATCH (u:User {user_id: r[0]}), (c:Genre {name: r[1]}) MERGE (u)-[:LIKES_GENRE]->(c)", {"rows": [["U001", "RPG"], ["U001", "Farming Sim"], ["U002", "Farming Sim"], ["U003", "Action"]]}, write=True)
+    query("UNWIND $rows AS r MATCH (g:Game {game_id: r[0]}), (c:Genre {name: r[1]}) MERGE (g)-[:IN_GENRE]->(c)", {"rows": [["G101", "RPG"], ["G101", "Farming Sim"], ["G102", "RPG"], ["G102", "Action"], ["G103", "Metroidvania"], ["G104", "FPS"]]}, write=True)
+    query("UNWIND $rows AS r MATCH (d:Developer {developer_id: r[0]}), (g:Game {game_id: r[1]}) MERGE (d)-[:DEVELOPED]->(g)", {"rows": [["D01", "G101"], ["D02", "G102"], ["D03", "G103"], ["D04", "G104"]]}, write=True)
 
 def get_users() -> list[dict[str, Any]]:
-    return query("MATCH (u:User) RETURN u.username AS username, u.role AS role, u.level AS level ORDER BY u.username")
-
+    return query("MATCH (u:User) RETURN u.user_id AS user_id, u.name AS name ORDER BY u.user_id")
 
 def get_dashboard_metrics() -> dict[str, int]:
+    rows = query("MATCH (u:User) WITH count(u) AS users MATCH (g:Game) WITH users, count(g) AS games MATCH ()-[r:PLAYED]->() WITH users, games, count(r) AS plays MATCH ()-[f:FRIEND_OF]->() RETURN users, games, plays, count(f) AS friendships")
+    return rows[0] if rows else {"users": 0, "games": 0, "plays": 0, "friendships": 0}
+
+def get_profile(user_id: str) -> dict[str, Any] | None:
     rows = query(
         """
-        MATCH (u:User) WITH count(u) AS users
-        MATCH (g:Game) WITH users, count(g) AS games
-        MATCH ()-[r:LIKES]->() WITH users, games, count(r) AS likes
-        MATCH ()-[f:FRIEND_OF]->()
-        RETURN users, games, likes, count(f) AS friendships
-        """
-    )
-    return rows[0] if rows else {"users": 0, "games": 0, "likes": 0, "friendships": 0}
-
-
-def get_profile(username: str) -> dict[str, Any] | None:
-    rows = query(
-        """
-        MATCH (u:User {username: $username})
-        OPTIONAL MATCH (u)-[:INTERESTED_IN]->(gen:Genre)
-        OPTIONAL MATCH (u)-[r:LIKES]->(g:Game)
-        RETURN u.username AS username, u.role AS role, u.level AS level,
-               collect(DISTINCT gen.name) AS interests,
-               collect(DISTINCT {game_name: g.game_name, rating: r.rating, hours: r.hours_played}) AS liked_games
+        MATCH (u:User {user_id:$user_id})
+        OPTIONAL MATCH (u)-[:LIKES_GENRE]->(c:Genre)
+        OPTIONAL MATCH (u)-[:PLAYED]->(g:Game)
+        RETURN u.user_id AS user_id, u.name AS name, u.platform AS platform,
+               collect(DISTINCT c.name) AS interests,
+               collect(DISTINCT {game_id:g.game_id, title:g.title}) AS played
         """,
-        {"username": username},
+        {"user_id": user_id},
     )
-    if not rows:
-        return None
-    row = rows[0]
-    row["liked_games"] = [x for x in row["liked_games"] if x.get("game_name")]
-    return row
+    if not rows: return None
+    rows[0]["played"] = [x for x in rows[0]["played"] if x.get("game_id")]
+    return rows[0]
 
-
-def recommend_games(username: str, limit: int = 6) -> list[dict[str, Any]]:
-    """โหลดและรันคำสั่งจาก recommendation.cypher"""
-    cypher_text = load_cypher("recommendation.cypher")
-    return query(
-        cypher_text,
-        {"username": username, "limit": int(limit)},
-    )
-
+def recommend_games(user_id: str, limit: int = 8) -> list[dict[str, Any]]:
+    # โหลดโค้ด Cypher จากไฟล์ recommendation.cypher มาทำงาน
+    with open("cypher/recommendation.cypher", "r", encoding="utf-8") as f:
+        cypher_query = f.read()
+    return query(cypher_query, {"user_id": user_id, "limit": limit})
 
 def search_games(keyword: str = "", genre: str | None = None) -> list[dict[str, Any]]:
-    cypher = """
-    MATCH (g:Game)
-    OPTIONAL MATCH (d:Developer)-[:DEVELOPED]->(g)
-    OPTIONAL MATCH (g)-[:IN_GENRE]->(gen:Genre)
-    WITH g, collect(DISTINCT d.name) AS developers, collect(DISTINCT gen.name) AS genres
-    WHERE (\(keyword = '' OR toLower(coalesce(g.game_name, '')) CONTAINS toLower(\)keyword))
-      AND (\(genre = '' OR\)genre IN genres)
-    RETURN g.game_name AS game_name,
-           g.year AS year,
-           g.image_url AS image_url,
-           developers,
-           genres
-    ORDER BY game_name ASC
-    """
-    clean_keyword = (keyword or "").strip()
-    clean_genre = (genre or "").strip()
-    return query(cypher, {"keyword": clean_keyword, "genre": clean_genre})
-
+    return query(
+        """
+        MATCH (g:Game)
+        OPTIONAL MATCH (d:Developer)-[:DEVELOPED]->(g)
+        OPTIONAL MATCH (g)-[:IN_GENRE]->(c:Genre)
+        WITH g, collect(DISTINCT d.name) AS developers, collect(DISTINCT c.name) AS genres
+        WHERE (\(keyword = '' OR toLower(g.title) CONTAINS toLower(\)keyword))
+          AND (\(genre = '' OR\)genre IN genres)
+        RETURN g.game_id AS game_id, g.title AS title, g.year AS year, g.image_url AS image_url, developers, genres
+        ORDER BY g.title
+        """,
+        {"keyword": keyword.strip(), "genre": genre or ""},
+    )
 
 def list_genres() -> list[str]:
-    return [row["name"] for row in query("MATCH (g:Genre) RETURN g.name AS name ORDER BY g.name")]
+    return [row["name"] for row in query("MATCH (c:Genre) RETURN c.name AS name ORDER BY c.name")]
 
-
-def record_like(username: str, game_name: str, rating: float, hours: int) -> None:
+def record_play(user_id: str, game_id: str, play_date: str, rating: float | None = None) -> None:
     query(
         """
-        MATCH (u:User {username: \(username}), (g:Game {game_name:\)game_name})
-        MERGE (u)-[r:LIKES]->(g)
-        SET r.rating = \(rating, r.hours_played =\)hours
+        MATCH (u:User {user_id:\(user_id}), (g:Game {game_id:\)game_id})
+        MERGE (u)-[r:PLAYED]->(g)
+        SET r.play_date = date($play_date)
+        FOREACH (_ IN CASE WHEN \(rating IS NULL THEN [] ELSE [1] END | SET r.rating =\)rating)
         """,
-        {"username": username, "game_name": game_name, "rating": rating, "hours": hours},
+        {"user_id": user_id, "game_id": game_id, "play_date": play_date, "rating": rating},
         write=True,
     )
 
-
-def graph_neighborhood(username: str, limit: int = 40) -> list[dict[str, Any]]:
+def graph_neighborhood(user_id: str, limit: int = 40) -> list[dict[str, Any]]:
     return query(
         """
-        MATCH (u:User {username: $username})
-        OPTIONAL MATCH p=(u)-[:FRIEND_OF|LIKES|INTERESTED_IN*1..2]-(x)
-        WITH u, collect(p)[0..$limit] AS paths
-        UNWIND paths AS p
-        UNWIND relationships(p) AS r
+        MATCH (u:User {user_id:$user_id})
+        OPTIONAL MATCH p=(u)-[:FRIEND_OF|PLAYED|LIKES_GENRE*1..2]-(x)
+        WITH u, collect(p)[0..$limit] AS paths UNWIND paths AS p UNWIND relationships(p) AS r
         WITH DISTINCT startNode(r) AS s, r, endNode(r) AS t
-        RETURN elementId(s) AS source_id, labels(s)[0] AS source_label,
-               coalesce(s.username, s.game_name, s.name) AS source_name,
-               type(r) AS relationship,
-               elementId(t) AS target_id, labels(t)[0] AS target_label,
-               coalesce(t.username, t.game_name, t.name) AS target_name
+        RETURN elementId(s) AS source_id, labels(s)[0] AS source_label, coalesce(s.name, s.title, s.user_id, s.game_id) AS source_name,
+               type(r) AS relationship, elementId(t) AS target_id, labels(t)[0] AS target_label, coalesce(t.name, t.title, t.user_id, t.game_id) AS target_name
         LIMIT $limit
         """,
-        {"username": username, "limit": int(limit)},
+        {"user_id": user_id, "limit": limit},
     )
