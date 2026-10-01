@@ -27,21 +27,23 @@ def get_driver():
 
 
 def query(
-    cypher: str,
-    parameters: dict[str, Any] | None = None,
-    *,
-    write: bool = False,
+    cypher: str, parameters: dict[str, Any] | None = None, *, write: bool = False
 ) -> list[dict[str, Any]]:
     _, _, _, database = _config()
     clean_cypher = cypher.replace("\u00a0", " ").strip().rstrip(";")
-    records, _, _ = get_driver().execute_query(
-        clean_cypher,
-        parameters_=parameters or {},
-        database_=database,
-        routing_=RoutingControl.WRITE if write else RoutingControl.READ,
-    )
-    return [record.data() for record in records]
 
+    try:
+        records, _, _ = get_driver().execute_query(
+            clean_cypher,
+            parameters_=parameters or {},
+            database_=database,
+            routing_=RoutingControl.WRITE if write else RoutingControl.READ,
+        )
+        return [record.data() for record in records]
+    except Exception as exc:
+        st.error(f"❌ Neo4j Cypher Error: {exc}")
+        st.code(clean_cypher, language="cypher")
+        raise exc
 
 def ping() -> bool:
     rows = query("RETURN 1 AS ok")
@@ -219,20 +221,36 @@ def recommend_games(user_id: str, limit: int = 8) -> list[dict[str, Any]]:
 
 
 def search_games(keyword: str = "", genre: str | None = None) -> list[dict[str, Any]]:
+    clean_kw = (keyword or "").strip().lower()
+    clean_genre = (genre or "").strip()
+
     cypher = """
     MATCH (g:Game)
     OPTIONAL MATCH (d:Developer)-[:DEVELOPED]->(g)
     OPTIONAL MATCH (g)-[:IN_GENRE]->(c:Genre)
     WITH g, collect(DISTINCT d.name) AS developers, collect(DISTINCT c.name) AS genres
-    WHERE (\(keyword = '' OR toLower(g.title) CONTAINS toLower(\)keyword))
-      AND (\(genre = '' OR\)genre IN genres)
+    """
+    conditions = []
+    params = {}
+
+    if clean_kw:
+        conditions.append(
+            "(toLower(g.title) CONTAINS \(keyword OR any(dev IN developers WHERE toLower(dev) CONTAINS\)keyword))"
+        )
+        params["keyword"] = clean_kw
+
+    if clean_genre:
+        conditions.append("$genre IN genres")
+        params["genre"] = clean_genre
+
+    if conditions:
+        cypher += " WHERE " + " AND ".join(conditions)
+
+    cypher += """
     RETURN g.game_id AS game_id, g.title AS title, g.year AS year, g.image_url AS image_url, developers, genres
     ORDER BY g.title ASC
     """
-    return query(
-        cypher,
-        {"keyword": (keyword or "").strip(), "genre": (genre or "").strip()},
-    )
+    return query(cypher, params)
 
 
 def list_genres() -> list[str]:
@@ -243,21 +261,18 @@ def record_play(
     user_id: str, game_id: str, play_date: str, rating: float | None = None
 ) -> None:
     cypher = """
-    MATCH (u:User {user_id: \(user_id}), (g:Game {game_id:\)game_id})
+    MATCH (u:User {user_id: $user_id})
+    MATCH (g:Game {game_id: $game_id})
     MERGE (u)-[r:PLAYED]->(g)
     SET r.play_date = date($play_date)
-    FOREACH (_ IN CASE WHEN \(rating IS NULL THEN [] ELSE [1] END | SET r.rating =\)rating)
     """
-    query(
-        cypher,
-        {
-            "user_id": user_id,
-            "game_id": game_id,
-            "play_date": play_date,
-            "rating": rating,
-        },
-        write=True,
-    )
+    params = {"user_id": user_id, "game_id": game_id, "play_date": play_date}
+
+    if rating is not None:
+        cypher += "\nSET r.rating = $rating"
+        params["rating"] = float(rating)
+
+    query(cypher, params, write=True)
 
 
 def graph_neighborhood(user_id: str, limit: int = 40) -> list[dict[str, Any]]:
