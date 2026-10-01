@@ -72,48 +72,100 @@ def create_schema() -> None:
 def seed_demo_data() -> None:
     create_schema()
 
+    # 1. ข้อมูลผู้ใช้ 10 คน (Alice - Jack)
     users = [
-        {"user_id": "U001", "name": "Anan", "platform": "PC", "year": 2026},
-        {"user_id": "U002", "name": "Mali", "platform": "PlayStation", "year": 2026},
-        {"user_id": "U003", "name": "Krit", "platform": "PC", "year": 2025},
-        {"user_id": "U004", "name": "Nida", "platform": "Nintendo Switch", "year": 2026},
+        {"user_id": "U001", "name": "Alice", "platform": "PC", "year": 2026},
+        {"user_id": "U002", "name": "Bob", "platform": "PC", "year": 2026},
+        {"user_id": "U003", "name": "Charlie", "platform": "PlayStation 5", "year": 2025},
+        {"user_id": "U004", "name": "David", "platform": "PC", "year": 2026},
+        {"user_id": "U005", "name": "Emma", "platform": "Nintendo Switch", "year": 2025},
+        {"user_id": "U006", "name": "Frank", "platform": "PC", "year": 2026},
+        {"user_id": "U007", "name": "Grace", "platform": "PlayStation 5", "year": 2024},
+        {"user_id": "U008", "name": "Henry", "platform": "Xbox Series X", "year": 2025},
+        {"user_id": "U009", "name": "Ivy", "platform": "PC", "year": 2026},
+        {"user_id": "U010", "name": "Jack", "platform": "PC", "year": 2024},
     ]
+
+    # 2. ข้อมูลเกม 10 เกม พร้อมลิงก์รูปภาพปก
     games = [
         {
             "game_id": "G101",
-            "title": "Stardew Valley",
-            "year": 2016,
-            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/xrpmydnu9rpxvxfjkiu7.jpg",
-        },
-        {
-            "game_id": "G102",
             "title": "Elden Ring",
             "year": 2022,
             "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg",
         },
         {
+            "game_id": "G102",
+            "title": "Cyberpunk 2077",
+            "year": 2020,
+            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co2mvt.jpg",
+        },
+        {
             "game_id": "G103",
-            "title": "Hollow Knight",
-            "year": 2017,
-            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co8b3e.jpg",
+            "title": "Minecraft",
+            "year": 2011,
+            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co8436.jpg",
         },
         {
             "game_id": "G104",
-            "title": "Overwatch 2",
-            "year": 2022,
-            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co2k1d.jpg",
+            "title": "Valorant",
+            "year": 2020,
+            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co2b5x.jpg",
+        },
+        {
+            "game_id": "G105",
+            "title": "Genshin Impact",
+            "year": 2020,
+            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co2a05.jpg",
+        },
+        {
+            "game_id": "G106",
+            "title": "Honkai: Star Rail",
+            "year": 2023,
+            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co6b79.jpg",
+        },
+        {
+            "game_id": "G107",
+            "title": "The Witcher 3",
+            "year": 2015,
+            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1wyy.jpg",
+        },
+        {
+            "game_id": "G108",
+            "title": "GTA V",
+            "year": 2013,
+            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1x77.jpg",
+        },
+        {
+            "game_id": "G109",
+            "title": "Apex Legends",
+            "year": 2019,
+            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co2k1e.jpg",
+        },
+        {
+            "game_id": "G110",
+            "title": "Project Zomboid",
+            "year": 2013,
+            "image_url": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1ybs.jpg",
         },
     ]
-    developers = [
-        {"dev_id": "D01", "name": "ConcernedApe"},
-        {"dev_id": "D02", "name": "FromSoftware"},
-        {"dev_id": "D03", "name": "Team Cherry"},
-        {"dev_id": "D04", "name": "Blizzard"},
-    ]
-    genres = ["RPG", "Farming Sim", "Action", "Metroidvania", "FPS"]
 
+    developers = [
+        {"dev_id": "D01", "name": "FromSoftware"},
+        {"dev_id": "D02", "name": "CD Projekt Red"},
+        {"dev_id": "D03", "name": "Mojang Studios"},
+        {"dev_id": "D04", "name": "Riot Games"},
+        {"dev_id": "D05", "name": "HoYoverse"},
+        {"dev_id": "D06", "name": "Rockstar Games"},
+        {"dev_id": "D07", "name": "Respawn Entertainment"},
+        {"dev_id": "D08", "name": "The Indie Stone"},
+    ]
+
+    genres = ["Action RPG", "Open World", "Survival", "FPS", "Sandbox", "Turn-Based RPG"]
+
+    # บันทึกโหนดพื้นฐาน
     query(
-        "UNWIND $rows AS row MERGE (u:User {user_id: row.user_id}) SET u.name = row.name, u.platform = row.platform",
+        "UNWIND $rows AS row MERGE (u:User {user_id: row.user_id}) SET u.name = row.name, u.platform = row.platform, u.year = row.year",
         {"rows": users},
         write=True,
     )
@@ -128,22 +180,59 @@ def seed_demo_data() -> None:
         write=True,
     )
     query(
-        "UNWIND $rows AS name MERGE (:Genre {name:name})",
+        "UNWIND $rows AS name MERGE (:Genre {name: name})",
         {"rows": genres},
         write=True,
     )
 
+    # 3. โครงข่ายเพื่อน (Friendships)
+    friendships = [
+        ["U001", "U002"],  # Alice - Bob
+        ["U001", "U003"],  # Alice - Charlie
+        ["U001", "U004"],  # Alice - David
+        ["U002", "U003"],  # Bob - Charlie
+        ["U002", "U005"],  # Bob - Emma
+        ["U003", "U004"],  # Charlie - David
+        ["U004", "U006"],  # David - Frank
+        ["U005", "U007"],  # Emma - Grace
+        ["U006", "U008"],  # Frank - Henry
+        ["U007", "U009"],  # Grace - Ivy
+        ["U008", "U010"],  # Henry - Jack
+    ]
     query(
         "UNWIND $rows AS r MATCH (a:User {user_id: r[0]}), (b:User {user_id: r[1]}) MERGE (a)-[:FRIEND_OF]->(b)",
-        {"rows": [["U001", "U002"], ["U001", "U003"], ["U003", "U004"]]},
+        {"rows": friendships},
         write=True,
     )
 
+    # 4. ประวัติการเล่น (PLAYED) ออกแบบให้เพื่อนของ Alice เล่นเกมร่วมกันเพื่อไม่ให้แต้มเสมอ
+    # Alice (U001) เคยเล่น: Elden Ring (G101), The Witcher 3 (G107)
     plays = [
-        {"u": "U001", "g": "G101", "date": "2026-08-01", "rating": 5.0},
-        {"u": "U001", "g": "G103", "date": "2026-08-14", "rating": 4.5},
-        {"u": "U002", "g": "G101", "date": "2026-08-05", "rating": 5.0},
-        {"u": "U003", "g": "G102", "date": "2026-08-07", "rating": 5.0},
+        {"u": "U001", "g": "G101", "date": "2026-08-01", "rating": 5.0}, # Alice: Elden Ring
+        {"u": "U001", "g": "G107", "date": "2026-08-10", "rating": 4.5}, # Alice: The Witcher 3
+
+        # เพื่อนของ Alice: Bob (U002), Charlie (U003), David (U004)
+        {"u": "U002", "g": "G103", "date": "2026-08-02", "rating": 4.5}, # Bob: Minecraft
+        {"u": "U002", "g": "G104", "date": "2026-08-05", "rating": 4.0}, # Bob: Valorant
+        {"u": "U002", "g": "G108", "date": "2026-08-12", "rating": 4.0}, # Bob: GTA V
+
+        {"u": "U003", "g": "G103", "date": "2026-08-03", "rating": 5.0}, # Charlie: Minecraft (เพื่อนชอบซ้ำคนที่ 2!)
+        {"u": "U003", "g": "G105", "date": "2026-08-08", "rating": 5.0}, # Charlie: Genshin Impact
+        {"u": "U003", "g": "G106", "date": "2026-08-15", "rating": 4.5}, # Charlie: Honkai: Star Rail
+
+        {"u": "U004", "g": "G103", "date": "2026-08-04", "rating": 5.0}, # David: Minecraft (เพื่อนชอบซ้ำคนที่ 3!)
+        {"u": "U004", "g": "G110", "date": "2026-08-09", "rating": 4.5}, # David: Project Zomboid
+        {"u": "U004", "g": "G102", "date": "2026-08-14", "rating": 4.0}, # David: Cyberpunk 2077
+
+        # ผู้เล่นคนอื่นๆ ช่วยเพิ่มคะแนน Popularity ทั่วไป
+        {"u": "U005", "g": "G103", "date": "2026-08-06", "rating": 5.0}, # Emma: Minecraft
+        {"u": "U005", "g": "G110", "date": "2026-08-11", "rating": 4.0}, # Emma: Project Zomboid
+        {"u": "U006", "g": "G104", "date": "2026-08-07", "rating": 4.5}, # Frank: Valorant
+        {"u": "U006", "g": "G109", "date": "2026-08-13", "rating": 4.0}, # Frank: Apex Legends
+        {"u": "U007", "g": "G105", "date": "2026-08-08", "rating": 4.5}, # Grace: Genshin Impact
+        {"u": "U008", "g": "G108", "date": "2026-08-09", "rating": 4.5}, # Henry: GTA V
+        {"u": "U009", "g": "G106", "date": "2026-08-10", "rating": 4.0}, # Ivy: Honkai: Star Rail
+        {"u": "U010", "g": "G109", "date": "2026-08-11", "rating": 4.5}, # Jack: Apex Legends
     ]
     query(
         "UNWIND $rows AS row MATCH (u:User {user_id: row.u}), (g:Game {game_id: row.g}) MERGE (u)-[r:PLAYED]->(g) SET r.play_date = date(row.date), r.rating = row.rating",
@@ -151,31 +240,59 @@ def seed_demo_data() -> None:
         write=True,
     )
 
+    # 5. ความชอบแนวเกมของผู้ใช้ (LIKES_GENRE)
+    interests = [
+        ["U001", "Action RPG"], ["U001", "Open World"], ["U001", "Sandbox"],  # Alice
+        ["U002", "FPS"], ["U002", "Open World"],
+        ["U003", "Turn-Based RPG"], ["U003", "Open World"], ["U003", "Sandbox"],
+        ["U004", "Survival"], ["U004", "Action RPG"],
+        ["U005", "Sandbox"], ["U005", "Survival"],
+        ["U006", "FPS"], ["U007", "Open World"],
+        ["U008", "Open World"], ["U009", "Turn-Based RPG"], ["U010", "FPS"],
+    ]
     query(
         "UNWIND $rows AS r MATCH (u:User {user_id: r[0]}), (c:Genre {name: r[1]}) MERGE (u)-[:LIKES_GENRE]->(c)",
-        {"rows": [["U001", "RPG"], ["U001", "Farming Sim"], ["U002", "Farming Sim"], ["U003", "Action"]]},
-        write=True,
-    )
-    query(
-        "UNWIND $rows AS r MATCH (g:Game {game_id: r[0]}), (c:Genre {name: r[1]}) MERGE (g)-[:IN_GENRE]->(c)",
-        {
-            "rows": [
-                ["G101", "RPG"],
-                ["G101", "Farming Sim"],
-                ["G102", "RPG"],
-                ["G102", "Action"],
-                ["G103", "Metroidvania"],
-                ["G104", "FPS"],
-            ]
-        },
-        write=True,
-    )
-    query(
-        "UNWIND $rows AS r MATCH (d:Developer {developer_id: r[0]}), (g:Game {game_id: r[1]}) MERGE (d)-[:DEVELOPED]->(g)",
-        {"rows": [["D01", "G101"], ["D02", "G102"], ["D03", "G103"], ["D04", "G104"]]},
+        {"rows": interests},
         write=True,
     )
 
+    # 6. หมวดหมู่แนวเกมของแต่ละเกม (IN_GENRE)
+    game_genres = [
+        ["G101", "Action RPG"], ["G101", "Open World"],
+        ["G102", "Action RPG"], ["G102", "Open World"],
+        ["G103", "Sandbox"], ["G103", "Survival"], ["G103", "Open World"],
+        ["G104", "FPS"],
+        ["G105", "Action RPG"], ["G105", "Open World"],
+        ["G106", "Turn-Based RPG"],
+        ["G107", "Action RPG"], ["G107", "Open World"],
+        ["G108", "Open World"],
+        ["G109", "FPS"],
+        ["G110", "Survival"], ["G110", "Open World"],
+    ]
+    query(
+        "UNWIND $rows AS r MATCH (g:Game {game_id: r[0]}), (c:Genre {name: r[1]}) MERGE (g)-[:IN_GENRE]->(c)",
+        {"rows": game_genres},
+        write=True,
+    )
+
+    # 7. ค่ายผู้พัฒนา (DEVELOPED)
+    dev_games = [
+        ["D01", "G101"],  # FromSoftware -> Elden Ring
+        ["D02", "G102"],  # CD Projekt Red -> Cyberpunk 2077
+        ["D03", "G103"],  # Mojang Studios -> Minecraft
+        ["D04", "G104"],  # Riot Games -> Valorant
+        ["D05", "G105"],  # HoYoverse -> Genshin Impact
+        ["D05", "G106"],  # HoYoverse -> Honkai: Star Rail
+        ["D02", "G107"],  # CD Projekt Red -> The Witcher 3
+        ["D06", "G108"],  # Rockstar Games -> GTA V
+        ["D07", "G109"],  # Respawn Entertainment -> Apex Legends
+        ["D08", "G110"],  # The Indie Stone -> Project Zomboid
+    ]
+    query(
+        "UNWIND $rows AS r MATCH (d:Developer {developer_id: r[0]}), (g:Game {game_id: r[1]}) MERGE (d)-[:DEVELOPED]->(g)",
+        {"rows": dev_games},
+        write=True,
+    )
 
 def get_users() -> list[dict[str, Any]]:
     return query(
