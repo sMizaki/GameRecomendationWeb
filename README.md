@@ -1,3 +1,20 @@
+# รวมการบ้าน — 664245008
+
+เทพทัต ทับทิมไทร
+Steam URL: https://gamerecomendationweb-wppvzoq3aub23d9ywceiwy.streamlit.app/
+
+รวมการบ้านทั้ง 4 ไฟล์ที่แนบมา พร้อมไฟล์ประกอบโปรเจกต์แนะนำเกม
+
+[หน้า index](index.html) · [Repository](https://github.com/YokMiracle/Motorcycle)
+
+| งาน | การบ้าน | ไฟล์ | Colab |
+| --- | --- | --- | --- |
+| 01 | แบบฝึกหัด School Book Recommendation Neo4j | [เปิดไฟล์](Homework/664245012_SchoolBookRecommendation.pdf) | — |
+| 02 | Game Recommend ด้วย Graph | [เปิดไฟล์](Homework/664245012_Game_Recommender_System_ด้วย_Graph.ipynb) | [เปิด Colab](https://colab.research.google.com/github/YokMiracle/Motorcycle/blob/main/homework/664245008_Motorcycle_RecommenderSystem.ipynb) |
+| 03 | GameRecommend ด้วย Neo4j | [เปิดไฟล์](Homework/Neo4jGameRecommendation.ipynb) | [เปิด Colab](https://colab.research.google.com/github/YokMiracle/Motorcycle/blob/main/homework/CryptoRecommender_664245008_Neo4j.ipynb) | 
+| 04 | Slide Game Recommendation  | [เปิดไฟล์](Homework/664245012GameRecommend.pptx) | — | 
+
+
 # GraphBook Recommendation System
 
 โปรเจ็คตัวอย่างระดับปริญญาตรีสำหรับรายวิชา Graph Database / Advanced Database
