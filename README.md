@@ -9,10 +9,10 @@ Steam URL: https://gamerecomendationweb-wppvzoq3aub23d9ywceiwy.streamlit.app/
 
 | งาน | การบ้าน | ไฟล์ | Colab |
 | --- | --- | --- | --- |
-| 01 | แบบฝึกหัด School Book Recommendation Neo4j | [เปิดไฟล์](Homework/664245012_SchoolBookRecommendation.pdf) | — |
-| 02 | Game Recommendation ด้วย Graph | [เปิดไฟล์](Homework/664245012_Game_Recommender_System_ด้วย_Graph.ipynb) | [เปิด Colab](https://colab.research.google.com/drive/1LL7W9yYA3Zo3ubv2BuDOKFjHsyOdNvMx?usp=sharing) |
-| 03 | GameRecommend ด้วย Neo4j | [เปิดไฟล์](Homework/Neo4jGameRecommendation.ipynb) | [เปิด Colab](https://colab.research.google.com/drive/1VJOWWZiiEPm0LqGX5_erVHdwnF468VEI?usp=sharing) | 
-| 04 | Slide Game Recommendation  | [เปิดไฟล์](Homework/664245012GameRecommend.pptx) | — | 
+| 05 | แบบฝึกหัด School Book Recommendation Neo4j | [เปิดไฟล์](Homework/664245012_SchoolBookRecommendation.pdf) | — |
+| 03 | Game Recommendation ด้วย Graph | [เปิดไฟล์](Homework/664245012_Game_Recommender_System_ด้วย_Graph.ipynb) | [เปิด Colab](https://colab.research.google.com/drive/1LL7W9yYA3Zo3ubv2BuDOKFjHsyOdNvMx?usp=sharing) |
+| 04 | GameRecommend ด้วย Neo4j | [เปิดไฟล์](Homework/Neo4jGameRecommendation.ipynb) | [เปิด Colab](https://colab.research.google.com/drive/1VJOWWZiiEPm0LqGX5_erVHdwnF468VEI?usp=sharing) | 
+| 06 | Slide Game Recommendation  | [เปิดไฟล์](Homework/664245012GameRecommend.pptx) | — | 
 
 
 # GraphBook Recommendation System
